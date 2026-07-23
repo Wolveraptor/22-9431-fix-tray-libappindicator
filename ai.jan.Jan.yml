@@ -2,6 +2,9 @@ id: ai.jan.Jan
 runtime: org.gnome.Platform
 runtime-version: '50'
 sdk: org.gnome.Sdk
+sdk-extensions:
+  - org.freedesktop.Sdk.Extension.rust-stable
+  - org.freedesktop.Sdk.Extension.node22
 command: Jan
 finish-args:
   - --socket=wayland # Permission needed to show the window
@@ -46,26 +49,88 @@ modules:
         url: https://github.com/KhronosGroup/Vulkan-Tools/archive/refs/tags/v1.3.283.zip
         sha256: 11ec6b474e91dc8cb6e7f22891294ede549bb6ed67c19d230e293b3fc9610883
 
-  - name: jan-binary
+  - name: jan
     buildsystem: simple
+    only-arches: [x86_64]
+    build-options:
+      append-path: /usr/lib/sdk/rust-stable/bin:/usr/lib/sdk/node22/bin
+      env:
+        CARGO_NET_OFFLINE: 'true'
+        SKIP_BINARIES: '1'
+        RELEASE_CHANNEL: stable
+        AUTO_UPDATER_DISABLED: 'true'
+        YARN_ENABLE_TELEMETRY: '0'
+        YARN_ENABLE_GLOBAL_CACHE: 'false'
     sources:
+      - type: archive
+        url: https://github.com/janhq/jan/archive/refs/tags/v0.8.4.tar.gz
+        sha256: a04c1a6a29fc61f9d5005d2f5e6fedd078e267735f7671e230cc91c1e53e149a
+      - type: archive
+        url: https://github.com/janhq/jan/releases/download/v0.8.4/jan-cargo-vendor-v0.8.4.tar.gz
+        sha256: 5ed344ae6f16d416279dceedb1a1cabe678bf2f6f4351d9d859ccbab31978cbf
+        dest: src-tauri
+        strip-components: 0
+      - type: archive
+        url: https://github.com/janhq/jan/releases/download/v0.8.4/jan-yarn-cache-v0.8.4.tar.gz
+        sha256: f609757e15911acc030cc26b3172eb58ab0059e7231bf0202bc482208001a008
+        strip-components: 0
       - type: file
-        url: https://catalog.jan.ai/flatpak/Jan_0.8.3_amd64-flatpak.deb
-        sha256: da49a96f8c630fa0ea07bf858304d2d453732c34763c0eeb01841041783fd7f3
-        only-arches: [x86_64]
+        url: https://repo.yarnpkg.com/4.5.3/packages/yarnpkg-cli/bin/yarn.js
+        sha256: dddc0b96ad2dca8d56a5302b56bf3cbf8210654474a6bf88877da61e866f3d46
+        dest: .yarn/releases
+        dest-filename: yarn-4.5.3.cjs
+      - type: archive
+        url: https://github.com/oven-sh/bun/releases/download/bun-v1.3.14/bun-linux-x64.zip
+        sha256: 951ee2aee855f08595aeec6225226a298d3fea83a3dcd6465c09cbccdf7e848f
+        dest: prebuilt/bun
+        strip-components: 1
+      - type: archive
+        url: https://github.com/astral-sh/uv/releases/download/0.11.31/uv-x86_64-unknown-linux-gnu.tar.gz
+        sha256: 8cc1cd82d434ec565376f98bd938d4b715b5791a80ff2d3aa78821cf85091b4b
+        dest: prebuilt/uv
+        strip-components: 1
       - type: file
-        url: https://raw.githubusercontent.com/janhq/jan/bd3d240cae5f4c3bf264e9e0097d13740ae393d7/flatpak/ai.jan.Jan.metainfo.xml
-        sha256: 4d8e2b2ec0bb8c825d8eff2eb1460324c353daf0510246e5eae7565a0e919666
+        path: ai.jan.Jan.metainfo.xml
+      - type: file
+        path: ai.jan.Jan.desktop
     build-commands:
-      - ar -x *.deb
-      - tar -xf data.tar.gz
-      - install -Dm755 usr/bin/Jan /app/bin/Jan
-      - install -Dm755 usr/bin/bun /app/bin/bun
-      - install -Dm755 usr/bin/uv /app/bin/uv
-      - cp -rv usr/lib/* /app/lib/.
-      - install -Dm644 usr/share/applications/Jan.desktop /app/share/applications/ai.jan.Jan.desktop
-      - desktop-file-edit --set-key=Exec --set-value=/app/bin/Jan --set-icon=ai.jan.Jan /app/share/applications/ai.jan.Jan.desktop
-      - install -Dm644 usr/share/icons/hicolor/128x128/apps/Jan.png /app/share/icons/hicolor/128x128/apps/ai.jan.Jan.png
-      - install -Dm644 usr/share/icons/hicolor/32x32/apps/Jan.png /app/share/icons/hicolor/32x32/apps/ai.jan.Jan.png
-      - install -Dm644 usr/share/icons/hicolor/256x256@2/apps/Jan.png /app/share/icons/hicolor/256x256@2/apps/ai.jan.Jan.png
+      # Offline binaries normally fetched by scripts/download-bin.mjs (SKIP_BINARIES=1)
+      - install -Dm755 prebuilt/bun/bun src-tauri/resources/bin/bun
+      - install -Dm755 prebuilt/uv/uv src-tauri/resources/bin/uv
+      - install -Dm755 prebuilt/uv/uv src-tauri/resources/bin/uv-x86_64-unknown-linux-gnu
+      # Vendored crates auto-apply via src-tauri/.cargo/config.toml (from the vendor tarball)
+      # Pin yarn to the vendored release; nested `yarn` calls in scripts resolve
+      # via yarn's own PATH injection, bypassing the corepack shim entirely
+      - echo "yarnPath: .yarn/releases/yarn-4.5.3.cjs" >> .yarnrc.yml
+      # Offline installs from the vendored yarn cache (root + plugins are
+      # two separate yarn projects); YARN_ENABLE_GLOBAL_CACHE=false points
+      # yarn at each project's .yarn/cache
+      - node .yarn/releases/yarn-4.5.3.cjs install
+      - cd src-tauri/plugins && node "$FLATPAK_BUILDER_BUILDDIR/.yarn/releases/yarn-4.5.3.cjs" install
+      # Stamp release version into web-app/package.json (source tag ships it
+      # stale; the UI's VERSION is injected from here at build time)
+      - node -e "const f='web-app/package.json',p=require('./'+f);p.version='0.8.4';require('fs').writeFileSync(f,JSON.stringify(p,null,2)+'\n')"
+      # Build TS layers
+      - node .yarn/releases/yarn-4.5.3.cjs build:tauri:plugin:api
+      - node .yarn/releases/yarn-4.5.3.cjs build:core
+      - node .yarn/releases/yarn-4.5.3.cjs build:extensions
+      # Generate sized app icons (git-ignored; tauri macro needs them) + stage LICENSE
+      - node .yarn/releases/yarn-4.5.3.cjs build:icon
+      - node .yarn/releases/yarn-4.5.3.cjs copy:assets:tauri
+      # jan-cli sidecar + main app binary (frontend built via beforeBuildCommand)
+      - cd src-tauri && cargo build --release --locked --features cli --bin jan-cli
+      - install -Dm755 src-tauri/target/release/jan-cli src-tauri/resources/bin/jan-cli
+      - node .yarn/releases/yarn-4.5.3.cjs tauri build --no-bundle
+      # Install app: binary, sidecars, resources (tauri resource_dir = <exe>/../lib/Jan)
+      - install -Dm755 src-tauri/target/release/Jan /app/bin/Jan
+      - install -Dm755 src-tauri/resources/bin/bun /app/bin/bun
+      - install -Dm755 src-tauri/resources/bin/uv /app/bin/uv
+      - install -Dm755 src-tauri/resources/bin/jan-cli /app/bin/jan-cli
+      - install -Dm755 src-tauri/resources/bin/jan-cli /app/lib/Jan/resources/bin/jan-cli
+      - install -Dm644 src-tauri/resources/LICENSE /app/lib/Jan/resources/LICENSE
+      # Desktop entry, icons, appstream metadata
+      - install -Dm644 src-tauri/icons/128x128.png /app/share/icons/hicolor/128x128/apps/ai.jan.Jan.png
+      - install -Dm644 src-tauri/icons/32x32.png /app/share/icons/hicolor/32x32/apps/ai.jan.Jan.png
+      - install -Dm644 src-tauri/icons/128x128@2x.png /app/share/icons/hicolor/256x256@2/apps/ai.jan.Jan.png
+      - install -Dm644 ai.jan.Jan.desktop /app/share/applications/ai.jan.Jan.desktop
       - install -Dm644 ai.jan.Jan.metainfo.xml /app/share/metainfo/ai.jan.Jan.metainfo.xml
