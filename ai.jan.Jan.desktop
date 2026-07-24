@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Name=Jan
+Comment=Use offline LLMs with your own data. Run open source models like Llama or Qwen on your own computer.
+Exec=Jan
+Icon=ai.jan.Jan
+Terminal=false
+Categories=Utility;Development;Science;
+StartupWMClass=Jan
