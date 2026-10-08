@@ -104,6 +104,11 @@
   </keywords>
 
   <releases>
+    <release version="0.8.5" date="2026-10-08">
+      <description>
+        <p>A fixes release: the llama.cpp engine (0.5.0) now ships inside the app and runs in its own worker process with CUDA and Vulkan, the jan command-line agent is no longer bundled, the Local API Server enforces Trusted Hosts when bound to 0.0.0.0, and a batch of llama.cpp, MCP, platform and agent fixes</p>
+      </description>
+    </release>
     <release version="0.8.4" date="2026-07-23">
       <description>
         <p>Backend-managed settings and credentials with OS keyring support, native web_search/web_fetch via tauri-plugin-websearch, built-in extension bundling, per-model chat template kwargs, OpenAI-compatible translating gateway with Responses API, chain-of-thought duration persistence, MCP duplicate serve guard, multi-provider API key rotation, and a large batch of chat, RAG, and desktop fixes</p>
