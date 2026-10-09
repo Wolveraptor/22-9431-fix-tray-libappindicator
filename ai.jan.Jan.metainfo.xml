@@ -104,6 +104,11 @@
   </keywords>
 
   <releases>
+    <release version="0.8.6" date="2026-10-09">
+      <description>
+        <p>A hotfix for 0.8.5: NVIDIA Turing GPUs (GTX 16xx, RTX 20xx) run the CUDA engine again on older drivers, Qwen3.8 with MTP is fast again when Parallel Sequences is auto, and images returned by MCP tools reach the model as images</p>
+      </description>
+    </release>
     <release version="0.8.5" date="2026-10-08">
       <description>
         <p>A fixes release: the llama.cpp engine (0.5.0) now ships inside the app and runs in its own worker process with CUDA and Vulkan, the jan command-line agent is no longer bundled, the Local API Server enforces Trusted Hosts when bound to 0.0.0.0, and a batch of llama.cpp, MCP, platform and agent fixes</p>
