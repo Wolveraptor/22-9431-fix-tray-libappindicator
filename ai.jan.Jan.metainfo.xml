@@ -104,6 +104,11 @@
   </keywords>
 
   <releases>
+    <release version="0.8.7" date="2026-10-20">
+      <description>
+        <p>Adds a Shell switch to turn the shell tool off in chat, a separate image size limit, and built-in subagents for the Jan agent; keeps project threads in their project when a document is attached, sends pasted @decorators as typed, makes Stop end the whole turn, and stops local chat failing behind a proxy</p>
+      </description>
+    </release>
     <release version="0.8.6" date="2026-10-09">
       <description>
         <p>A hotfix for 0.8.5: NVIDIA Turing GPUs (GTX 16xx, RTX 20xx) run the CUDA engine again on older drivers, Qwen3.8 with MTP is fast again when Parallel Sequences is auto, and images returned by MCP tools reach the model as images</p>

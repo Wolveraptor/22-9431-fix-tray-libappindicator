@@ -97,18 +97,18 @@ modules:
         JAN_ENGINE_FEATURES: engine-cuda,engine-vulkan
     sources:
       - type: archive
-        url: https://github.com/janhq/jan/archive/refs/tags/v0.8.6.tar.gz
-        sha256: 935954a836b6470928c12b369b020536bc2d1884b47fdac4984a9cf9218e8946
+        url: https://github.com/janhq/jan/archive/refs/tags/v0.8.7.tar.gz
+        sha256: 4120e1d6b668ef575ff5d7898a6feb025e579522a415e0622b48b92a76a40297
       # Vendors src-tauri/Cargo.lock and the llamacpp plugin's own lockfile;
       # its .cargo/config.toml covers every crate built under src-tauri
       - type: archive
-        url: https://github.com/janhq/jan/releases/download/v0.8.6/jan-cargo-vendor-v0.8.6.tar.gz
-        sha256: a6c30b0c338505683aec4f5d27e0f4610fb2d26299cc3fd81d4f8cc26047c4dc
+        url: https://github.com/janhq/jan/releases/download/v0.8.7/jan-cargo-vendor-v0.8.7.tar.gz
+        sha256: 2a2d3ed8444ea4c09128fa31fb54fbf0485dea2594573165fd9c84aead90ba09
         dest: src-tauri
         strip-components: 0
       - type: archive
-        url: https://github.com/janhq/jan/releases/download/v0.8.6/jan-yarn-cache-v0.8.6.tar.gz
-        sha256: 4fefdecdca27d6c57cae2daba0f67d1e6c2079f3eb3949a11760a9a0453dbb79
+        url: https://github.com/janhq/jan/releases/download/v0.8.7/jan-yarn-cache-v0.8.7.tar.gz
+        sha256: 4768b5b4bc0b84452e37ca4b3a8e3508d5650edf542a8ed8557623283782124d
         strip-components: 0
       # llama.cpp at the pin in src-tauri/plugins/tauri-plugin-llamacpp/build.rs
       # (PINNED_TAG / PINNED_COMMIT), where build.rs looks for it by default;
@@ -151,7 +151,7 @@ modules:
       - cd src-tauri/plugins && node "$FLATPAK_BUILDER_BUILDDIR/.yarn/releases/yarn-4.5.3.cjs" install
       # Stamp release version into web-app/package.json (source tag ships it
       # stale; the UI's VERSION is injected from here at build time)
-      - node -e "const f='web-app/package.json',p=require('./'+f);p.version='0.8.6';require('fs').writeFileSync(f,JSON.stringify(p,null,2)+'\n')"
+      - node -e "const f='web-app/package.json',p=require('./'+f);p.version='0.8.7';require('fs').writeFileSync(f,JSON.stringify(p,null,2)+'\n')"
       # Build TS layers
       - node .yarn/releases/yarn-4.5.3.cjs build:tauri:plugin:api
       - node .yarn/releases/yarn-4.5.3.cjs build:core
