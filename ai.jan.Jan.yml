@@ -25,6 +25,12 @@ cleanup:
   - '*.a'
 
 modules:
+  # System tray support: the vendored libappindicator-sys dlopens
+  # libayatana-appindicator3 at runtime, which is not in the runtime.
+  # Add as result of this issue: https://github.com/flathub/ai.jan.Jan/issues/22
+  # Add as result of this issue: https://github.com/janhq/jan/issues/9431
+  - shared-modules/libappindicator/libappindicator-gtk3-12.10.json
+
   # ggml-vulkan needs `find_package(SPIRV-Headers CONFIG)`; the SDK ships
   # glslc, glslang and the Vulkan headers/loader, but not this cmake config.
   - name: spirv-headers
