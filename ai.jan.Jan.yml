@@ -16,6 +16,10 @@ finish-args:
   - --share=ipc
   - --share=network
   - --socket=pulseaudio # for future multimodality
+  # System tray (tray-icon dlopens libayatana-appindicator3, bundled below)
+  - --talk-name=org.kde.StatusNotifierWatcher
+    # System tray: host tray applet must read the icon file Tauri writes here
+  - --filesystem=xdg-run/tray-icon:create
 
 cleanup:
   - /include
